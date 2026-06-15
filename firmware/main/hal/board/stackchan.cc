@@ -19,6 +19,9 @@
 #include <algorithm>
 #include "stackchan_camera.h"
 #include "hal_bridge.h"
+#include <esp_vfs_fat.h>
+#include <sdmmc_cmd.h>
+#include <driver/sdspi_host.h>
 
 #define TAG "M5Stack-StackChan-Board"
 
@@ -398,12 +401,39 @@ private:
     {
         spi_bus_config_t buscfg = {};
         buscfg.mosi_io_num      = GPIO_NUM_37;
-        buscfg.miso_io_num      = GPIO_NUM_NC;
+        buscfg.miso_io_num      = GPIO_NUM_35;
         buscfg.sclk_io_num      = GPIO_NUM_36;
         buscfg.quadwp_io_num    = GPIO_NUM_NC;
         buscfg.quadhd_io_num    = GPIO_NUM_NC;
         buscfg.max_transfer_sz  = DISPLAY_WIDTH * DISPLAY_HEIGHT * sizeof(uint16_t);
         ESP_ERROR_CHECK(spi_bus_initialize(SPI3_HOST, &buscfg, SPI_DMA_CH_AUTO));
+    }
+
+    void InitializeSdCard()
+    {
+        ESP_LOGI(TAG, "Mounting SD card...");
+        
+        sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+        host.slot = SPI3_HOST;
+        
+        sdspi_device_config_t slot_config = SDSPI_DEVICE_CONFIG_DEFAULT();
+        slot_config.gpio_cs = GPIO_NUM_4;
+        slot_config.host_id = SPI3_HOST;
+        
+        esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+            .format_if_mount_failed = false,
+            .max_files = 5,
+            .allocation_unit_size = 0,
+            .disk_status_check_enable = true,
+        };
+        
+        sdmmc_card_t* card;
+        esp_err_t ret = esp_vfs_fat_sdspi_mount("/sdcard", &host, &slot_config, &mount_config, &card);
+        if (ret == ESP_OK) {
+            ESP_LOGI(TAG, "SD card mounted successfully at /sdcard");
+        } else {
+            ESP_LOGW(TAG, "Failed to mount SD card: %s", esp_err_to_name(ret));
+        }
     }
 
     void InitializeIli9342Display()
@@ -499,6 +529,7 @@ public:
         InitializeAw9523();
         I2cDetect();
         InitializeSpi();
+        InitializeSdCard();
         InitializeIli9342Display();
         InitializeCamera();
         InitializeFt6336TouchPad();
