@@ -22,6 +22,7 @@
 #include <esp_vfs_fat.h>
 #include <sdmmc_cmd.h>
 #include <driver/sdspi_host.h>
+#include "hal/utils/secret_logic/secret_logic.h"
 
 #define TAG "M5Stack-StackChan-Board"
 
@@ -424,13 +425,16 @@ private:
             .format_if_mount_failed = false,
             .max_files = 5,
             .allocation_unit_size = 0,
-            .disk_status_check_enable = true,
+            .disk_status_check_enable = false,
         };
         
         sdmmc_card_t* card;
         esp_err_t ret = esp_vfs_fat_sdspi_mount("/sdcard", &host, &slot_config, &mount_config, &card);
         if (ret == ESP_OK) {
             ESP_LOGI(TAG, "SD card mounted successfully at /sdcard");
+            // Cache the server URL immediately before display initialization
+            std::string url = secret_logic::get_server_url();
+            ESP_LOGI(TAG, "Cached server_url from SD card: %s", url.c_str());
         } else {
             ESP_LOGW(TAG, "Failed to mount SD card: %s", esp_err_to_name(ret));
         }
