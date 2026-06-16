@@ -9,6 +9,7 @@
 #include <string>
 #include <esp_log.h>
 #include <ArduinoJson.h>
+#include <dirent.h>
 
 namespace secret_logic {
 
@@ -17,6 +18,19 @@ __attribute__((weak)) std::string get_server_url()
     static std::string cached_url = "";
     if (!cached_url.empty()) {
         return cached_url;
+    }
+
+    // Debug: list all files in /sdcard
+    DIR *dir = opendir("/sdcard");
+    if (dir != nullptr) {
+        ESP_LOGI("secret_logic", "Listing files in /sdcard:");
+        struct dirent *ent;
+        while ((ent = readdir(dir)) != nullptr) {
+            ESP_LOGI("secret_logic", "  - '%s' (type: %d)", ent->d_name, ent->d_type);
+        }
+        closedir(dir);
+    } else {
+        ESP_LOGW("secret_logic", "Failed to open directory /sdcard");
     }
 
     FILE* f = fopen("/sdcard/config.json", "r");
