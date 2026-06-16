@@ -368,7 +368,7 @@ index 7ca34b4..5f7fe40 100644
          InitializeCamera();
          InitializeFt6336TouchPad();
 diff --git a/main/protocols/websocket_protocol.cc b/main/protocols/websocket_protocol.cc
-index f0cc034..c6ea4ae 100644
+index f0cc034..54e855d 100644
 --- a/main/protocols/websocket_protocol.cc
 +++ b/main/protocols/websocket_protocol.cc
 @@ -3,6 +3,7 @@
@@ -390,6 +390,6 @@ index f0cc034..c6ea4ae 100644
 +    } else if (url.rfind("https://", 0) == 0) {
 +        url.replace(0, 8, "wss://");
 +    }
-+    std::string token = settings.GetString("token");
+     std::string token = settings.GetString("token");
      int version = settings.GetInt("version");
      if (version != 0) {
