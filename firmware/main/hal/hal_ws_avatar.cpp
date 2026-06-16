@@ -63,7 +63,13 @@ public:
 
     void init()
     {
-        _url = fmt::format("{}/stackChan/ws?deviceType=StackChan", secret_logic::get_server_url());
+        std::string base_url = secret_logic::get_server_url();
+        if (base_url.rfind("http://", 0) == 0) {
+            base_url.replace(0, 7, "ws://");
+        } else if (base_url.rfind("https://", 0) == 0) {
+            base_url.replace(0, 8, "wss://");
+        }
+        _url = fmt::format("{}/stackChan/ws?deviceType=StackChan", base_url);
 
         connect();
 
