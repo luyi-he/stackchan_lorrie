@@ -69,6 +69,58 @@ void Hal::xiaozhi_mcp_init()
                            return true;
                        });
 
+    mclog::tagInfo(_tag, "add display.set_avatar tool");
+    mcp_server.AddTool("self.display.set_avatar",
+                       "Set avatar expression.",
+                       PropertyList({Property("face", kPropertyTypeString, std::string("idle"))}),
+                       [this](const PropertyList& properties) -> ReturnValue {
+                           std::string face = properties["face"].value<std::string>();
+                           mclog::tagInfo(_tag, "set_avatar: {}", face);
+
+                           LvglLockGuard lock;
+                           avatar::Emotion emotion = avatar::Emotion::Neutral;
+                           if (face == "happy") emotion = avatar::Emotion::Happy;
+                           else if (face == "sad") emotion = avatar::Emotion::Sad;
+                           else if (face == "angry") emotion = avatar::Emotion::Angry;
+                           else if (face == "thinking" || face == "doubt") emotion = avatar::Emotion::Doubt;
+                           else if (face == "sleepy") emotion = avatar::Emotion::Sleepy;
+
+                           GetStackChan().avatar().setEmotion(emotion);
+                           return true;
+                       });
+
+    mclog::tagInfo(_tag, "add display.set_mouth tool");
+    mcp_server.AddTool("self.display.set_mouth",
+                       "Set avatar mouth shape.",
+                       PropertyList({Property("mouth", kPropertyTypeString, std::string("closed"))}),
+                       [this](const PropertyList& properties) -> ReturnValue {
+                           std::string mouth = properties["mouth"].value<std::string>();
+                           mclog::tagInfo(_tag, "set_mouth: {}", mouth);
+
+                           LvglLockGuard lock;
+                           int weight = 0;
+                           if (mouth == "open") weight = 100;
+                           else if (mouth == "half") weight = 50;
+                           else if (mouth == "e") weight = 30;
+                           else if (mouth == "u") weight = 20;
+
+                           GetStackChan().avatar().mouth().setWeight(weight);
+                           return true;
+                       });
+
+    mclog::tagInfo(_tag, "add display.set_speech_bubble tool");
+    mcp_server.AddTool("self.display.set_speech_bubble",
+                       "Set speech bubble text.",
+                       PropertyList({Property("text", kPropertyTypeString, std::string(""))}),
+                       [this](const PropertyList& properties) -> ReturnValue {
+                           std::string text = properties["text"].value<std::string>();
+                           mclog::tagInfo(_tag, "set_speech_bubble: {}", text);
+
+                           LvglLockGuard lock;
+                           GetStackChan().avatar().setSpeech(text);
+                           return true;
+                       });
+
     mclog::tagInfo(_tag, "add robot.set_led_color tool");
     mcp_server.AddTool(
         "self.robot.set_led_color",
