@@ -1,8 +1,40 @@
 diff --git a/main/application.cc b/main/application.cc
-index d69d43d..3b6f07e 100644
+index d69d43d..85377ae 100644
 --- a/main/application.cc
 +++ b/main/application.cc
-@@ -610,33 +610,36 @@ void Application::InitializeProtocol() {
+@@ -9,6 +9,7 @@
+ #include "mcp_server.h"
+ #include "assets.h"
+ #include "settings.h"
++#include "hal/utils/secret_logic/secret_logic.h"
+ 
+ #include <cstring>
+ #include <esp_log.h>
+@@ -396,6 +397,11 @@ void Application::CheckAssetsVersion() {
+ }
+ 
+ void Application::CheckNewVersion() {
++    if (!secret_logic::get_server_url().empty()) {
++        ESP_LOGI(TAG, "SD Card server_url found, bypassing CheckNewVersion");
++        return;
++    }
++
+     const int MAX_RETRY = 10;
+     int retry_count = 0;
+     int retry_delay = 10; // Initial retry delay in seconds
+@@ -477,7 +483,10 @@ void Application::InitializeProtocol() {
+ 
+     display->SetStatus(Lang::Strings::LOADING_PROTOCOL);
+ 
+-    if (ota_->HasMqttConfig()) {
++    if (!secret_logic::get_server_url().empty()) {
++        ESP_LOGI(TAG, "SD Card server_url found, forcing WebsocketProtocol");
++        protocol_ = std::make_unique<WebsocketProtocol>();
++    } else if (ota_->HasMqttConfig()) {
+         protocol_ = std::make_unique<MqttProtocol>();
+     } else if (ota_->HasWebsocketConfig()) {
+         protocol_ = std::make_unique<WebsocketProtocol>();
+@@ -610,33 +619,36 @@ void Application::InitializeProtocol() {
  }
  
  void Application::ShowActivationCode(const std::string& code, const std::string& message) {
