@@ -368,7 +368,7 @@ index 7ca34b4..5f7fe40 100644
          InitializeCamera();
          InitializeFt6336TouchPad();
 diff --git a/main/protocols/websocket_protocol.cc b/main/protocols/websocket_protocol.cc
-index f0cc034..54e855d 100644
+index f0cc034..71e2b8e 100644
 --- a/main/protocols/websocket_protocol.cc
 +++ b/main/protocols/websocket_protocol.cc
 @@ -3,6 +3,7 @@
@@ -379,17 +379,19 @@ index f0cc034..54e855d 100644
  
  #include <cstring>
  #include <cJSON.h>
-@@ -82,7 +83,12 @@ void WebsocketProtocol::CloseAudioChannel(bool send_goodbye) {
+@@ -82,8 +83,13 @@ void WebsocketProtocol::CloseAudioChannel(bool send_goodbye) {
  
  bool WebsocketProtocol::OpenAudioChannel() {
      Settings settings("websocket", false);
 -    std::string url = settings.GetString("url");
+-    std::string token = settings.GetString("token");
 +    std::string url = secret_logic::get_server_url();
 +    if (url.rfind("http://", 0) == 0) {
 +        url.replace(0, 7, "ws://");
 +    } else if (url.rfind("https://", 0) == 0) {
 +        url.replace(0, 8, "wss://");
 +    }
-     std::string token = settings.GetString("token");
++    std::string token = secret_logic::get_token();
      int version = settings.GetInt("version");
      if (version != 0) {
+         version_ = version;
